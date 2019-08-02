@@ -1,0 +1,1108 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import requests"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from bs4 import BeautifulSoup"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import re"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import jieba"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "resp = requests.get(\"https://movies.yahoo.com.tw/chart.html?cate=rating&search_year=2016\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "soup = BeautifulSoup(resp.text, \"html.parser\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "['4.6', '4.6']\n",
+      "['4.6', '4.6']\n",
+      "['4.5', '4.5']\n",
+      "['4.3', '4.3']\n",
+      "['4.3', '4.3']\n",
+      "['4.3', '4.3']\n",
+      "['4.3', '4.3']\n"
+     ]
+    }
+   ],
+   "source": [
+    "thriller = (\"https://movies.yahoo.com.tw/movieinfo_main/%E4%BD%A0%E7%9A%84%E5%90%8D%E5%AD%97-your-name-6467\",\n",
+    "            \"https://movies.yahoo.com.tw/movieinfo_main/%E5%8B%95%E7%89%A9%E6%96%B9%E5%9F%8E%E5%B8%82-zootopia-6091\",\n",
+    "            \"https://movies.yahoo.com.tw/movieinfo_main/%E9%8B%BC%E9%90%B5%E8%8B%B1%E9%9B%84-hacksaw-ridge-6436\",\n",
+    "            \"https://movies.yahoo.com.tw/movieinfo_main/%E6%80%AA%E7%8D%B8%E8%88%87%E7%89%A0%E5%80%91%E7%9A%84%E7%94%A2%E5%9C%B0-fantastic-beasts-and-where-to-find-them-6189\",\n",
+    "            \"https://movies.yahoo.com.tw/movieinfo_main/%E6%96%B0%E4%B8%96%E7%B4%80%E7%A6%8F%E7%88%BE%E6%91%A9%E6%96%AF-%E5%9C%B0%E7%8D%84%E6%96%B0%E5%A8%98-sherlock-special-6016\",\n",
+    "            \"https://movies.yahoo.com.tw/movieinfo_main/%E9%81%87%E8%A6%8B%E8%A1%97%E8%B2%93BOB-a-street-cat-named-bob-6592\",\n",
+    "            \"https://movies.yahoo.com.tw/movieinfo_main/%E8%96%A9%E5%88%A9%E6%A9%9F%E9%95%B7-%E5%93%88%E5%BE%B7%E9%81%9C%E5%A5%87%E8%B9%9F-sully-6455\")\n",
+    "score_list = []\n",
+    "\n",
+    "for i in thriller:\n",
+    "    resp = requests.get(i)\n",
+    "    soup = BeautifulSoup(resp.text, \"html.parser\")\n",
+    "    string = soup.find_all(\"div\", {\"class\":\"score_num count\"})\n",
+    "    string=str(string)\n",
+    "    pattern = \"[0-9]\"+\".\"+\"[0-9]\"\n",
+    "    a = re.findall(pattern,string)\n",
+    "    score_list.append(a)\n",
+    "    print(a)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df = pd.DataFrame({\"你的名字\":score_list[0],\"動物方程式\":score_list[1],\"鋼鐵英雄\":score_list[2],\"怪獸與他們的產地\":score_list[3],\"新世紀福爾摩斯\":score_list[4],\"遇見街貓BOB\":score_list[5],\"薩利機長\":score_list[6]},\n",
+    "                  columns = [\"你的名字\",\"動物方程式\",\"鋼鐵英雄\",\"怪獸與他們的產地\",\"新世紀福爾摩斯\",\"遇見街貓BOB\",\"薩利機長\"])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>你的名字</th>\n",
+       "      <th>動物方程式</th>\n",
+       "      <th>鋼鐵英雄</th>\n",
+       "      <th>怪獸與他們的產地</th>\n",
+       "      <th>新世紀福爾摩斯</th>\n",
+       "      <th>遇見街貓BOB</th>\n",
+       "      <th>薩利機長</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>4.6</td>\n",
+       "      <td>4.6</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.3</td>\n",
+       "      <td>4.3</td>\n",
+       "      <td>4.3</td>\n",
+       "      <td>4.3</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>4.6</td>\n",
+       "      <td>4.6</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.3</td>\n",
+       "      <td>4.3</td>\n",
+       "      <td>4.3</td>\n",
+       "      <td>4.3</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  你的名字 動物方程式 鋼鐵英雄 怪獸與他們的產地 新世紀福爾摩斯 遇見街貓BOB 薩利機長\n",
+       "0  4.6   4.6  4.5      4.3     4.3     4.3  4.3\n",
+       "1  4.6   4.6  4.5      4.3     4.3     4.3  4.3"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "resp = requests.get(\"https://ani.gamer.com.tw/animeVideo.php?sn=11446\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<Response [200]>"
+      ]
+     },
+     "execution_count": 33,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "resp"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 34,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "soup = BeautifulSoup(resp.text, \"html.parser\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 35,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[<div class=\"ACG-score\">9.8<span>2136人</span></div>]\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(soup.find_all(\"div\", {\"class\":\"ACG-score\"}))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 36,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['9', '8', '2', '1', '3', '6']"
+      ]
+     },
+     "execution_count": 36,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "string = soup.find_all(\"div\", {\"class\":\"ACG-score\"})\n",
+    "string=str(string)\n",
+    "pattern = \"[0-9]\"\n",
+    "re.findall(pattern,string)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "9.8\n"
+     ]
+    }
+   ],
+   "source": [
+    "string = soup.find_all(\"div\", {\"class\":\"ACG-score\"})\n",
+    "string=str(string)\n",
+    "pattern = \"[0-9]\"+\".\"+\"[0-9]+\"\n",
+    "a = re.findall(pattern,string)\n",
+    "print(a[0])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 38,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[<span>53%</span>,\n",
+       " <span>53%</span>,\n",
+       " <span>45%</span>,\n",
+       " <span>44%</span>,\n",
+       " <span>32%</span>]"
+      ]
+     },
+     "execution_count": 38,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "soup.find_all(\"span\", text=re.compile(\"%\"))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 30,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['51', '46', '35', '31', '27']"
+      ]
+     },
+     "execution_count": 30,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "string = soup.find_all(\"span\", text=re.compile(\"%\"))\n",
+    "string=str(string)\n",
+    "pattern = \"[0-9]+\"\n",
+    "re.findall(pattern,string)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 99,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "['9.8', '2136'] ['53', '53', '45', '44', '32']\n",
+      "['9.7', '2568'] ['58', '47', '41', '30', '28']\n",
+      "['9.8', '7881'] ['46', '40', '40', '34', '27']\n",
+      "['9.7', '5380'] ['55', '50', '44', '35', '28']\n",
+      "['9.6', '4866'] ['60', '58', '47', '36', '31']\n",
+      "['9.4', '6540'] ['60', '52', '49', '41', '37']\n",
+      "['9.5', '2164'] ['51', '42', '35', '35', '28']\n",
+      "['9.4', '1137'] ['40', '37', '35', '32', '27']\n",
+      "['9.7', '6300'] ['42', '34', '33', '30', '29']\n",
+      "['9.6', '1452'] ['57', '42', '36', '30', '23']\n",
+      "['9.2', '717'] ['63', '53', '44', '43', '37']\n",
+      "['9.8', '1607'] ['57', '51', '46', '35', '32']\n",
+      "['9.6', '1548'] ['49', '48', '46', '34', '25']\n",
+      "['9.6', '2850'] ['63', '39', '34', '33', '32']\n",
+      "['9.2', '1332'] ['51', '46', '35', '31', '27']\n"
+     ]
+    }
+   ],
+   "source": [
+    "thriller = (\"https://ani.gamer.com.tw/animeVideo.php?sn=11446\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=6479\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=10922\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=4451\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=90\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=926\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=3441\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=11590\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=10210\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=10175\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=10349\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=7612\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=6471\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=4877\",\n",
+    "            \"https://ani.gamer.com.tw/animeVideo.php?sn=5879\")\n",
+    "score_list = []\n",
+    "\n",
+    "for i in thriller:\n",
+    "    resp = requests.get(i)\n",
+    "    soup = BeautifulSoup(resp.text, \"html.parser\")\n",
+    "    string = soup.find_all(\"div\", {\"class\":\"ACG-score\"})\n",
+    "    string=str(string)\n",
+    "    pattern = \"[0-9]\"+\".\"+\"[0-9]+\"\n",
+    "    a = re.findall(pattern,string)\n",
+    "    string = soup.find_all(\"span\", text=re.compile(\"%\"))\n",
+    "    string=str(string)\n",
+    "    pattern = \"[0-9]+\"\n",
+    "    b = re.findall(pattern,string)\n",
+    "    score_list.append(a)\n",
+    "    score_list.append(b)\n",
+    "    print(a,b)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 100,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "score=[]\n",
+    "for i in range(0, 28, 2):\n",
+    "    score.append(score_list[i][0])\n",
+    "people=[]\n",
+    "for i in range(0, 28, 2):\n",
+    "    people.append(score_list[i][1])\n",
+    "scenario=[]\n",
+    "for i in range(1, 29, 2):\n",
+    "    scenario.append(score_list[i][0])\n",
+    "role=[]\n",
+    "for i in range(1, 29, 2):\n",
+    "    role.append(score_list[i][1])\n",
+    "quality=[]\n",
+    "for i in range(1, 29, 2):\n",
+    "    quality.append(score_list[i][2])\n",
+    "world=[]\n",
+    "for i in range(1, 29, 2):\n",
+    "    world.append(score_list[i][3])\n",
+    "creativity=[]\n",
+    "for i in range(1, 29, 2):\n",
+    "    creativity.append(score_list[i][4])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 118,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df = pd.DataFrame({\"Score\":score, \"People who have rated\":people, \"Scenario\":scenario, \"Role manipulation\":role, \"Quality\":quality, \"Worldview\":world, \"Creativity\":creativity},\n",
+    "                   columns = [\"Score\",\n",
+    "                              \"People who have rated\",\n",
+    "                              \"Scenario\",\n",
+    "                              \"Role manipulation\",\n",
+    "                              \"Quality\",\n",
+    "                              \"Worldview\",\n",
+    "                              \"Creativity\"],index=Animation)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 119,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Score</th>\n",
+       "      <th>People who have rated</th>\n",
+       "      <th>Scenario</th>\n",
+       "      <th>Role manipulation</th>\n",
+       "      <th>Quality</th>\n",
+       "      <th>Worldview</th>\n",
+       "      <th>Creativity</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>強風吹拂</th>\n",
+       "      <td>9.8</td>\n",
+       "      <td>2136</td>\n",
+       "      <td>53</td>\n",
+       "      <td>53</td>\n",
+       "      <td>45</td>\n",
+       "      <td>44</td>\n",
+       "      <td>32</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>三月的獅子</th>\n",
+       "      <td>9.7</td>\n",
+       "      <td>2568</td>\n",
+       "      <td>58</td>\n",
+       "      <td>47</td>\n",
+       "      <td>41</td>\n",
+       "      <td>30</td>\n",
+       "      <td>28</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>JoJo的冒險</th>\n",
+       "      <td>9.8</td>\n",
+       "      <td>7881</td>\n",
+       "      <td>46</td>\n",
+       "      <td>40</td>\n",
+       "      <td>40</td>\n",
+       "      <td>34</td>\n",
+       "      <td>27</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>一拳超人</th>\n",
+       "      <td>9.7</td>\n",
+       "      <td>5380</td>\n",
+       "      <td>55</td>\n",
+       "      <td>50</td>\n",
+       "      <td>44</td>\n",
+       "      <td>35</td>\n",
+       "      <td>28</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>冰菓</th>\n",
+       "      <td>9.6</td>\n",
+       "      <td>4866</td>\n",
+       "      <td>60</td>\n",
+       "      <td>58</td>\n",
+       "      <td>47</td>\n",
+       "      <td>36</td>\n",
+       "      <td>31</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>刀劍神域</th>\n",
+       "      <td>9.4</td>\n",
+       "      <td>6540</td>\n",
+       "      <td>60</td>\n",
+       "      <td>52</td>\n",
+       "      <td>49</td>\n",
+       "      <td>41</td>\n",
+       "      <td>37</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>暗殺教室</th>\n",
+       "      <td>9.5</td>\n",
+       "      <td>2164</td>\n",
+       "      <td>51</td>\n",
+       "      <td>42</td>\n",
+       "      <td>35</td>\n",
+       "      <td>35</td>\n",
+       "      <td>28</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>情色漫畫老師</th>\n",
+       "      <td>9.4</td>\n",
+       "      <td>1137</td>\n",
+       "      <td>40</td>\n",
+       "      <td>37</td>\n",
+       "      <td>35</td>\n",
+       "      <td>32</td>\n",
+       "      <td>27</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>工作細胞</th>\n",
+       "      <td>9.7</td>\n",
+       "      <td>6300</td>\n",
+       "      <td>42</td>\n",
+       "      <td>34</td>\n",
+       "      <td>33</td>\n",
+       "      <td>30</td>\n",
+       "      <td>29</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Re.Life</th>\n",
+       "      <td>9.6</td>\n",
+       "      <td>1452</td>\n",
+       "      <td>57</td>\n",
+       "      <td>42</td>\n",
+       "      <td>36</td>\n",
+       "      <td>30</td>\n",
+       "      <td>23</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Free!游泳部</th>\n",
+       "      <td>9.2</td>\n",
+       "      <td>717</td>\n",
+       "      <td>63</td>\n",
+       "      <td>53</td>\n",
+       "      <td>44</td>\n",
+       "      <td>43</td>\n",
+       "      <td>37</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>夏目友人帳 陸</th>\n",
+       "      <td>9.8</td>\n",
+       "      <td>1607</td>\n",
+       "      <td>57</td>\n",
+       "      <td>51</td>\n",
+       "      <td>46</td>\n",
+       "      <td>35</td>\n",
+       "      <td>32</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>文豪野犬 第二季</th>\n",
+       "      <td>9.6</td>\n",
+       "      <td>1548</td>\n",
+       "      <td>49</td>\n",
+       "      <td>48</td>\n",
+       "      <td>46</td>\n",
+       "      <td>34</td>\n",
+       "      <td>25</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>只有我不存在的城市</th>\n",
+       "      <td>9.6</td>\n",
+       "      <td>2850</td>\n",
+       "      <td>63</td>\n",
+       "      <td>39</td>\n",
+       "      <td>34</td>\n",
+       "      <td>33</td>\n",
+       "      <td>32</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "          Score People who have rated Scenario Role manipulation Quality  \\\n",
+       "強風吹拂        9.8                  2136       53                53      45   \n",
+       "三月的獅子       9.7                  2568       58                47      41   \n",
+       "JoJo的冒險     9.8                  7881       46                40      40   \n",
+       "一拳超人        9.7                  5380       55                50      44   \n",
+       "冰菓          9.6                  4866       60                58      47   \n",
+       "刀劍神域        9.4                  6540       60                52      49   \n",
+       "暗殺教室        9.5                  2164       51                42      35   \n",
+       "情色漫畫老師      9.4                  1137       40                37      35   \n",
+       "工作細胞        9.7                  6300       42                34      33   \n",
+       "Re.Life     9.6                  1452       57                42      36   \n",
+       "Free!游泳部    9.2                   717       63                53      44   \n",
+       "夏目友人帳 陸     9.8                  1607       57                51      46   \n",
+       "文豪野犬 第二季    9.6                  1548       49                48      46   \n",
+       "只有我不存在的城市   9.6                  2850       63                39      34   \n",
+       "\n",
+       "          Worldview Creativity  \n",
+       "強風吹拂             44         32  \n",
+       "三月的獅子            30         28  \n",
+       "JoJo的冒險          34         27  \n",
+       "一拳超人             35         28  \n",
+       "冰菓               36         31  \n",
+       "刀劍神域             41         37  \n",
+       "暗殺教室             35         28  \n",
+       "情色漫畫老師           32         27  \n",
+       "工作細胞             30         29  \n",
+       "Re.Life          30         23  \n",
+       "Free!游泳部         43         37  \n",
+       "夏目友人帳 陸          35         32  \n",
+       "文豪野犬 第二季         34         25  \n",
+       "只有我不存在的城市        33         32  "
+      ]
+     },
+     "execution_count": 119,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 116,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Animation = [\"強風吹拂\",\n",
+    "                              \"三月的獅子\",\n",
+    "                              \"JoJo的冒險\",\n",
+    "                              \"一拳超人\",\n",
+    "                              \"冰菓\",\n",
+    "                              \"刀劍神域\",\n",
+    "                              \"暗殺教室\",\n",
+    "                              \"情色漫畫老師\",\n",
+    "                              \"工作細胞\",\n",
+    "                              \"Re.Life\",\n",
+    "                              \"Free!游泳部\",\n",
+    "                              \"夏目友人帳 陸\",\n",
+    "                              \"文豪野犬 第二季\",\n",
+    "                              \"只有我不存在的城市\",\n",
+    "                            ]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "df = pd.DataFrame({\"強風吹拂\":(score_list[0][0], score_list[1][0]),\n",
+    "                   \"三月的獅子\":(score_list[2][0], score_list[3][0]),\n",
+    "                   \"JoJo的冒險\":(score_list[4][0], score_list[5][0]),\n",
+    "                   \"一拳超人\":(score_list[6][0], score_list[7][0]),\n",
+    "                   \"冰菓\":(score_list[8][0], score_list[9][0]),\n",
+    "                   \"刀劍神域\":(score_list[10][0], score_list[11][0]),\n",
+    "                   \"暗殺教室\":(score_list[12][0], score_list[13][0]),\n",
+    "                   \"情色漫畫老師\":(score_list[14][0], score_list[15][0]),\n",
+    "                   \"工作細胞\":(score_list[16][0], score_list[17][0]),\n",
+    "                   \"Re.Life\":(score_list[18][0], score_list[19][0]),\n",
+    "                   \"Free!游泳部\":(score_list[20][0], score_list[21][0]),\n",
+    "                   \"夏目友人帳 陸\":(score_list[22][0], score_list[23][0]),\n",
+    "                   \"文豪野犬 第二季\":(score_list[24][0], score_list[25][0]),\n",
+    "                   \"只有我不存在的城市\":(score_list[26][0], score_list[27][0]),\n",
+    "                   \"槍彈辯駁 3\":(score_list[28][0], score_list[29][0])},\n",
+    "                   columns = [\"強風吹拂\",\n",
+    "                              \"三月的獅子\",\n",
+    "                              \"JoJo的冒險\",\n",
+    "                              \"一拳超人\",\n",
+    "                              \"冰菓\",\n",
+    "                              \"刀劍神域\",\n",
+    "                              \"暗殺教室\",\n",
+    "                              \"情色漫畫老師\",\n",
+    "                              \"工作細胞\",\n",
+    "                              \"Re.Life\",\n",
+    "                              \"Free!游泳部\",\n",
+    "                              \"夏目友人帳 陸\",\n",
+    "                              \"文豪野犬 第二季\",\n",
+    "                              \"只有我不存在的城市\",\n",
+    "                              \"槍彈辯駁 3\"])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>強風吹拂</th>\n",
+       "      <th>三月的獅子</th>\n",
+       "      <th>JoJo的冒險</th>\n",
+       "      <th>一拳超人</th>\n",
+       "      <th>冰菓</th>\n",
+       "      <th>刀劍神域</th>\n",
+       "      <th>暗殺教室</th>\n",
+       "      <th>情色漫畫老師</th>\n",
+       "      <th>工作細胞</th>\n",
+       "      <th>Re.Life</th>\n",
+       "      <th>Free!游泳部</th>\n",
+       "      <th>夏目友人帳 陸</th>\n",
+       "      <th>文豪野犬 第二季</th>\n",
+       "      <th>只有我不存在的城市</th>\n",
+       "      <th>槍彈辯駁 3</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>[9.8, 2136]</td>\n",
+       "      <td>[9.7, 2568]</td>\n",
+       "      <td>[9.8, 7881]</td>\n",
+       "      <td>[9.7, 5380]</td>\n",
+       "      <td>[9.6, 4866]</td>\n",
+       "      <td>[9.4, 6540]</td>\n",
+       "      <td>[9.5, 2164]</td>\n",
+       "      <td>[9.4, 1137]</td>\n",
+       "      <td>[9.7, 6300]</td>\n",
+       "      <td>[9.6, 1452]</td>\n",
+       "      <td>[9.2, 717]</td>\n",
+       "      <td>[9.8, 1607]</td>\n",
+       "      <td>[9.6, 1548]</td>\n",
+       "      <td>[9.6, 2850]</td>\n",
+       "      <td>[9.2, 1332]</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>[53, 53, 45, 44, 32]</td>\n",
+       "      <td>[58, 47, 41, 30, 28]</td>\n",
+       "      <td>[46, 40, 40, 34, 27]</td>\n",
+       "      <td>[55, 50, 44, 35, 28]</td>\n",
+       "      <td>[60, 58, 47, 36, 31]</td>\n",
+       "      <td>[60, 52, 49, 41, 37]</td>\n",
+       "      <td>[51, 42, 35, 35, 28]</td>\n",
+       "      <td>[40, 37, 35, 32, 27]</td>\n",
+       "      <td>[42, 34, 33, 30, 29]</td>\n",
+       "      <td>[57, 42, 36, 30, 23]</td>\n",
+       "      <td>[63, 53, 44, 43, 37]</td>\n",
+       "      <td>[57, 51, 46, 35, 32]</td>\n",
+       "      <td>[49, 48, 46, 34, 25]</td>\n",
+       "      <td>[63, 39, 34, 33, 32]</td>\n",
+       "      <td>[51, 46, 35, 31, 27]</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                   強風吹拂                 三月的獅子               JoJo的冒險  \\\n",
+       "0           [9.8, 2136]           [9.7, 2568]           [9.8, 7881]   \n",
+       "1  [53, 53, 45, 44, 32]  [58, 47, 41, 30, 28]  [46, 40, 40, 34, 27]   \n",
+       "\n",
+       "                   一拳超人                    冰菓                  刀劍神域  \\\n",
+       "0           [9.7, 5380]           [9.6, 4866]           [9.4, 6540]   \n",
+       "1  [55, 50, 44, 35, 28]  [60, 58, 47, 36, 31]  [60, 52, 49, 41, 37]   \n",
+       "\n",
+       "                   暗殺教室                情色漫畫老師                  工作細胞  \\\n",
+       "0           [9.5, 2164]           [9.4, 1137]           [9.7, 6300]   \n",
+       "1  [51, 42, 35, 35, 28]  [40, 37, 35, 32, 27]  [42, 34, 33, 30, 29]   \n",
+       "\n",
+       "                Re.Life              Free!游泳部               夏目友人帳 陸  \\\n",
+       "0           [9.6, 1452]            [9.2, 717]           [9.8, 1607]   \n",
+       "1  [57, 42, 36, 30, 23]  [63, 53, 44, 43, 37]  [57, 51, 46, 35, 32]   \n",
+       "\n",
+       "               文豪野犬 第二季             只有我不存在的城市                槍彈辯駁 3  \n",
+       "0           [9.6, 1548]           [9.6, 2850]           [9.2, 1332]  \n",
+       "1  [49, 48, 46, 34, 25]  [63, 39, 34, 33, 32]  [51, 46, 35, 31, 27]  "
+      ]
+     },
+     "execution_count": 27,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 120,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Score</th>\n",
+       "      <th>People who have rated</th>\n",
+       "      <th>Scenario</th>\n",
+       "      <th>Role manipulation</th>\n",
+       "      <th>Quality</th>\n",
+       "      <th>Worldview</th>\n",
+       "      <th>Creativity</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>強風吹拂</th>\n",
+       "      <td>9.8</td>\n",
+       "      <td>2136</td>\n",
+       "      <td>53</td>\n",
+       "      <td>53</td>\n",
+       "      <td>45</td>\n",
+       "      <td>44</td>\n",
+       "      <td>32</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>三月的獅子</th>\n",
+       "      <td>9.7</td>\n",
+       "      <td>2568</td>\n",
+       "      <td>58</td>\n",
+       "      <td>47</td>\n",
+       "      <td>41</td>\n",
+       "      <td>30</td>\n",
+       "      <td>28</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>JoJo的冒險</th>\n",
+       "      <td>9.8</td>\n",
+       "      <td>7881</td>\n",
+       "      <td>46</td>\n",
+       "      <td>40</td>\n",
+       "      <td>40</td>\n",
+       "      <td>34</td>\n",
+       "      <td>27</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>一拳超人</th>\n",
+       "      <td>9.7</td>\n",
+       "      <td>5380</td>\n",
+       "      <td>55</td>\n",
+       "      <td>50</td>\n",
+       "      <td>44</td>\n",
+       "      <td>35</td>\n",
+       "      <td>28</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>冰菓</th>\n",
+       "      <td>9.6</td>\n",
+       "      <td>4866</td>\n",
+       "      <td>60</td>\n",
+       "      <td>58</td>\n",
+       "      <td>47</td>\n",
+       "      <td>36</td>\n",
+       "      <td>31</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>刀劍神域</th>\n",
+       "      <td>9.4</td>\n",
+       "      <td>6540</td>\n",
+       "      <td>60</td>\n",
+       "      <td>52</td>\n",
+       "      <td>49</td>\n",
+       "      <td>41</td>\n",
+       "      <td>37</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>暗殺教室</th>\n",
+       "      <td>9.5</td>\n",
+       "      <td>2164</td>\n",
+       "      <td>51</td>\n",
+       "      <td>42</td>\n",
+       "      <td>35</td>\n",
+       "      <td>35</td>\n",
+       "      <td>28</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>情色漫畫老師</th>\n",
+       "      <td>9.4</td>\n",
+       "      <td>1137</td>\n",
+       "      <td>40</td>\n",
+       "      <td>37</td>\n",
+       "      <td>35</td>\n",
+       "      <td>32</td>\n",
+       "      <td>27</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>工作細胞</th>\n",
+       "      <td>9.7</td>\n",
+       "      <td>6300</td>\n",
+       "      <td>42</td>\n",
+       "      <td>34</td>\n",
+       "      <td>33</td>\n",
+       "      <td>30</td>\n",
+       "      <td>29</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Re.Life</th>\n",
+       "      <td>9.6</td>\n",
+       "      <td>1452</td>\n",
+       "      <td>57</td>\n",
+       "      <td>42</td>\n",
+       "      <td>36</td>\n",
+       "      <td>30</td>\n",
+       "      <td>23</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Free!游泳部</th>\n",
+       "      <td>9.2</td>\n",
+       "      <td>717</td>\n",
+       "      <td>63</td>\n",
+       "      <td>53</td>\n",
+       "      <td>44</td>\n",
+       "      <td>43</td>\n",
+       "      <td>37</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>夏目友人帳 陸</th>\n",
+       "      <td>9.8</td>\n",
+       "      <td>1607</td>\n",
+       "      <td>57</td>\n",
+       "      <td>51</td>\n",
+       "      <td>46</td>\n",
+       "      <td>35</td>\n",
+       "      <td>32</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>文豪野犬 第二季</th>\n",
+       "      <td>9.6</td>\n",
+       "      <td>1548</td>\n",
+       "      <td>49</td>\n",
+       "      <td>48</td>\n",
+       "      <td>46</td>\n",
+       "      <td>34</td>\n",
+       "      <td>25</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>只有我不存在的城市</th>\n",
+       "      <td>9.6</td>\n",
+       "      <td>2850</td>\n",
+       "      <td>63</td>\n",
+       "      <td>39</td>\n",
+       "      <td>34</td>\n",
+       "      <td>33</td>\n",
+       "      <td>32</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "          Score People who have rated Scenario Role manipulation Quality  \\\n",
+       "強風吹拂        9.8                  2136       53                53      45   \n",
+       "三月的獅子       9.7                  2568       58                47      41   \n",
+       "JoJo的冒險     9.8                  7881       46                40      40   \n",
+       "一拳超人        9.7                  5380       55                50      44   \n",
+       "冰菓          9.6                  4866       60                58      47   \n",
+       "刀劍神域        9.4                  6540       60                52      49   \n",
+       "暗殺教室        9.5                  2164       51                42      35   \n",
+       "情色漫畫老師      9.4                  1137       40                37      35   \n",
+       "工作細胞        9.7                  6300       42                34      33   \n",
+       "Re.Life     9.6                  1452       57                42      36   \n",
+       "Free!游泳部    9.2                   717       63                53      44   \n",
+       "夏目友人帳 陸     9.8                  1607       57                51      46   \n",
+       "文豪野犬 第二季    9.6                  1548       49                48      46   \n",
+       "只有我不存在的城市   9.6                  2850       63                39      34   \n",
+       "\n",
+       "          Worldview Creativity  \n",
+       "強風吹拂             44         32  \n",
+       "三月的獅子            30         28  \n",
+       "JoJo的冒險          34         27  \n",
+       "一拳超人             35         28  \n",
+       "冰菓               36         31  \n",
+       "刀劍神域             41         37  \n",
+       "暗殺教室             35         28  \n",
+       "情色漫畫老師           32         27  \n",
+       "工作細胞             30         29  \n",
+       "Re.Life          30         23  \n",
+       "Free!游泳部         43         37  \n",
+       "夏目友人帳 陸          35         32  \n",
+       "文豪野犬 第二季         34         25  \n",
+       "只有我不存在的城市        33         32  "
+      ]
+     },
+     "execution_count": 120,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
