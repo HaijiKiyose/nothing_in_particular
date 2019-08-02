@@ -1,0 +1,220 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import requests"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from bs4 import BeautifulSoup"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import re"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import jieba"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "resp = requests.get(\"https://movies.yahoo.com.tw/chart.html?cate=rating&search_year=2016\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "soup = BeautifulSoup(resp.text, \"html.parser\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "['4.6', '4.6']\n",
+      "['4.6', '4.6']\n",
+      "['4.5', '4.5']\n",
+      "['4.3', '4.3']\n",
+      "['4.3', '4.3']\n",
+      "['4.3', '4.3']\n",
+      "['4.3', '4.3']\n"
+     ]
+    }
+   ],
+   "source": [
+    "thriller = (\"https://movies.yahoo.com.tw/movieinfo_main/%E4%BD%A0%E7%9A%84%E5%90%8D%E5%AD%97-your-name-6467\",\n",
+    "            \"https://movies.yahoo.com.tw/movieinfo_main/%E5%8B%95%E7%89%A9%E6%96%B9%E5%9F%8E%E5%B8%82-zootopia-6091\",\n",
+    "            \"https://movies.yahoo.com.tw/movieinfo_main/%E9%8B%BC%E9%90%B5%E8%8B%B1%E9%9B%84-hacksaw-ridge-6436\",\n",
+    "            \"https://movies.yahoo.com.tw/movieinfo_main/%E6%80%AA%E7%8D%B8%E8%88%87%E7%89%A0%E5%80%91%E7%9A%84%E7%94%A2%E5%9C%B0-fantastic-beasts-and-where-to-find-them-6189\",\n",
+    "            \"https://movies.yahoo.com.tw/movieinfo_main/%E6%96%B0%E4%B8%96%E7%B4%80%E7%A6%8F%E7%88%BE%E6%91%A9%E6%96%AF-%E5%9C%B0%E7%8D%84%E6%96%B0%E5%A8%98-sherlock-special-6016\",\n",
+    "            \"https://movies.yahoo.com.tw/movieinfo_main/%E9%81%87%E8%A6%8B%E8%A1%97%E8%B2%93BOB-a-street-cat-named-bob-6592\",\n",
+    "            \"https://movies.yahoo.com.tw/movieinfo_main/%E8%96%A9%E5%88%A9%E6%A9%9F%E9%95%B7-%E5%93%88%E5%BE%B7%E9%81%9C%E5%A5%87%E8%B9%9F-sully-6455\")\n",
+    "score_list = []\n",
+    "\n",
+    "for i in thriller:\n",
+    "    resp = requests.get(i)\n",
+    "    soup = BeautifulSoup(resp.text, \"html.parser\")\n",
+    "    string = soup.find_all(\"div\", {\"class\":\"score_num count\"})\n",
+    "    string=str(string)\n",
+    "    pattern = \"[0-9]\"+\".\"+\"[0-9]\"\n",
+    "    a = re.findall(pattern,string)\n",
+    "    score_list.append(a)\n",
+    "    print(a)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df = pd.DataFrame({\"你的名字\":score_list[0],\"動物方程式\":score_list[1],\"鋼鐵英雄\":score_list[2],\"怪獸與他們的產地\":score_list[3],\"新世紀福爾摩斯\":score_list[4],\"遇見街貓BOB\":score_list[5],\"薩利機長\":score_list[6]},\n",
+    "                  columns = [\"你的名字\",\"動物方程式\",\"鋼鐵英雄\",\"怪獸與他們的產地\",\"新世紀福爾摩斯\",\"遇見街貓BOB\",\"薩利機長\"])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>你的名字</th>\n",
+       "      <th>動物方程式</th>\n",
+       "      <th>鋼鐵英雄</th>\n",
+       "      <th>怪獸與他們的產地</th>\n",
+       "      <th>新世紀福爾摩斯</th>\n",
+       "      <th>遇見街貓BOB</th>\n",
+       "      <th>薩利機長</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>4.6</td>\n",
+       "      <td>4.6</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.3</td>\n",
+       "      <td>4.3</td>\n",
+       "      <td>4.3</td>\n",
+       "      <td>4.3</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>4.6</td>\n",
+       "      <td>4.6</td>\n",
+       "      <td>4.5</td>\n",
+       "      <td>4.3</td>\n",
+       "      <td>4.3</td>\n",
+       "      <td>4.3</td>\n",
+       "      <td>4.3</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "  你的名字 動物方程式 鋼鐵英雄 怪獸與他們的產地 新世紀福爾摩斯 遇見街貓BOB 薩利機長\n",
+       "0  4.6   4.6  4.5      4.3     4.3     4.3  4.3\n",
+       "1  4.6   4.6  4.5      4.3     4.3     4.3  4.3"
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
